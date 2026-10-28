@@ -4,7 +4,7 @@ export async function publicationFiles(){
  const files=[];
  async function walk(dir){for(const e of await readdir(dir,{withFileTypes:true})){const path=join(dir,e.name).replaceAll('\\','/');if(e.isDirectory())await walk(path);else if(e.isFile())files.push(path);else throw Error('심볼릭 링크는 공개 목록에 포함할 수 없습니다: '+path);}}
  for(const dir of ['public','test','scripts','.github','docs'])await walk(dir);
- files.push('README.md','package.json','pnpm-lock.yaml','pnpm-workspace.yaml','.gitignore','server.mjs','start.cmd','firebase.json','firestore.rules','firestore.indexes.json');
+ files.push('README.md','package.json','pnpm-lock.yaml','pnpm-workspace.yaml','.gitignore','.firebaserc','server.mjs','start.cmd','firebase.json','firestore.rules','firestore.indexes.json');
  return files.sort();
 }
 const files=await publicationFiles();
