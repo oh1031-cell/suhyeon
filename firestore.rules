@@ -1,0 +1,45 @@
+rules_version = '2';
+// Data model: users/{uid}/entries/{entryId}.
+// Required: title:string(1..120), content:string(1..100000), date:string(10),
+// mood:enum, tags:list(string(1..24),max 10), favorite:bool,
+// createdAt:timestamp(immutable), updatedAt:timestamp(server request time).
+// Identity is encoded in the document path; no public profile or owner field.
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function isAuthenticated() {
+   return request.auth != null && request.auth.token.email_verified == true
+    && request.auth.token.firebase.sign_in_provider == 'google.com';
+  }
+  function isOwner(uid) { return isAuthenticated() && request.auth.uid == uid; }
+  // Minimal immutable revocation marker blocks writes racing account deletion.
+  function mayWriteEntries(uid) { return isOwner(uid) && !exists(/databases/$(database)/documents/users/$(uid)); }
+  function validTag(tags,i) { return tags.size() <= i || (tags[i] is string && tags[i].size() > 0 && tags[i].size() <= 24); }
+  function isValidEntry(d) {
+   return d.keys().hasAll(['title','content','date','mood','tags','favorite','createdAt','updatedAt'])
+    && d.keys().hasOnly(['title','content','date','mood','tags','favorite','createdAt','updatedAt'])
+    && d.title is string && d.title.size() > 0 && d.title.size() <= 120
+    && d.content is string && d.content.size() > 0 && d.content.size() <= 100000
+    && d.date is string && d.date.size() == 10 && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+    && d.mood in ['great','good','okay','low','sad']
+    && d.favorite is bool && d.tags is list && d.tags.size() <= 10
+    && validTag(d.tags,0) && validTag(d.tags,1) && validTag(d.tags,2) && validTag(d.tags,3) && validTag(d.tags,4)
+    && validTag(d.tags,5) && validTag(d.tags,6) && validTag(d.tags,7) && validTag(d.tags,8) && validTag(d.tags,9)
+    && d.createdAt is timestamp && d.updatedAt is timestamp && d.updatedAt == request.time;
+  }
+  match /users/{uid}/entries/{entryId} {
+   allow read: if isOwner(uid);
+   allow create: if mayWriteEntries(uid) && isValidEntry(request.resource.data) && request.resource.data.createdAt == request.time;
+   allow update: if mayWriteEntries(uid) && isValidEntry(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
+   allow delete: if isOwner(uid);
+  }
+  match /users/{uid} {
+   allow get: if isOwner(uid);
+   allow create: if isOwner(uid) && request.resource.data.keys().hasAll(['deleting','updatedAt'])
+    && request.resource.data.keys().hasOnly(['deleting','updatedAt'])
+    && request.resource.data.deleting == true && request.resource.data.updatedAt is timestamp
+    && request.resource.data.updatedAt == request.time;
+   allow update, delete, list: if false;
+  }
+  match /{document=**} { allow read, write: if false; }
+ }
+}

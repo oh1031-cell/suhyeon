@@ -1,0 +1,14 @@
+data/
+qa/
+*.log
+node_modules/
+.pnpm-store/
+.firebase/
+.env*
+*.sqlite*
+*service-account*.json
+*credentials*.json
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+tools/

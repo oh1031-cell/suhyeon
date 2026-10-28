@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fe5e02">
+  <meta name="description" content="초등학교 2학년 선생님의 수업과 하루를 연결하는 공간. 교육활동, 프로그램, 일정관리를 온교실에서 시작하세요.">
+  <title>온교실 — 수업과 하루를 잇다</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="core.js"></script>
+  <script defer src="data.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 바로가기</a>
+  <div id="app"></div>
+  <div id="classroom" hidden></div>
+  <dialog id="form-dialog" aria-labelledby="dialog-title"></dialog>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title"></dialog>
+  <input id="import-file" type="file" accept=".json,application/json" hidden>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
